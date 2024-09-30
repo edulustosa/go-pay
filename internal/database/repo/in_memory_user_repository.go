@@ -82,3 +82,18 @@ func (r *InMemoryUserRepository) Create(
 	r.Users = append(r.Users, user)
 	return user.ID, nil
 }
+
+func (r *InMemoryUserRepository) UpdateBalance(
+	_ context.Context,
+	id uuid.UUID,
+	balance float64,
+) error {
+	for i, user := range r.Users {
+		if user.ID == id {
+			r.Users[i].Balance = balance
+			return nil
+		}
+	}
+
+	return ErrUserNotFound
+}

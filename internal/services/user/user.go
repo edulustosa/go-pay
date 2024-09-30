@@ -13,6 +13,7 @@ type UserRepository interface {
 	FindByDocument(ctx context.Context, document string) (models.User, error)
 	FindByEmail(ctx context.Context, email string) (models.User, error)
 	Create(ctx context.Context, user models.User) (uuid.UUID, error)
+	UpdateBalance(ctx context.Context, id uuid.UUID, balance float64) error
 }
 
 type UserService struct {
@@ -58,4 +59,12 @@ func (s *UserService) Create(
 	}
 
 	return s.repo.Create(ctx, user)
+}
+
+func (s *UserService) UpdateBalance(
+	ctx context.Context,
+	id uuid.UUID,
+	balance float64,
+) error {
+	return s.repo.UpdateBalance(ctx, id, balance)
 }
