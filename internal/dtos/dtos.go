@@ -7,3 +7,8 @@ type TransactionDTO struct {
 	Payer uuid.UUID `json:"payer"`
 	Payee uuid.UUID `json:"payee"`
 }
+
+type NotificationDTO struct {
+	Email   string `json:"email"`
+	Message string `json:"message"`
+}
