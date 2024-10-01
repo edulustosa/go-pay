@@ -69,7 +69,7 @@ func TestUserService_Create(t *testing.T) {
 		t.Logf("error: %v", err)
 	})
 
-	t.Run("should not be able to create a user with the same document", func(t *testing.T) {
+	t.Run("should not be able to create a user with the same email", func(t *testing.T) {
 		userRepository.Users = []models.User{}
 
 		user1 := models.User{

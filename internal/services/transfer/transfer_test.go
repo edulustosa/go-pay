@@ -44,7 +44,9 @@ func TestTransferService(t *testing.T) {
 		transactionID, err := sut.NewTransaction(ctx, transaction)
 		if err != nil {
 			if err == transfer.ErrTransactionNotAuthorized {
-				t.Fatal("transaction not authorized")
+				t.Log("transaction not authorized")
+				TestTransferService(t)
+				return
 			}
 
 			t.Fatalf("expected no error, got %v", err)
@@ -64,5 +66,73 @@ func TestTransferService(t *testing.T) {
 		}
 
 		helpers.PrettyPrint(user1Model, user2Model)
+	})
+
+	t.Run(
+		"should not be able to make a transfer between users with insufficient funds",
+		func(t *testing.T) {
+			userRepository.Users = []models.User{}
+
+			user1, _ := userRepository.Create(ctx, models.User{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "johndoe@email.com",
+				Document:  "12345678900",
+				Balance:   90,
+			})
+			user2, _ := userRepository.Create(ctx, models.User{
+				FirstName: "Jane",
+				LastName:  "Doe",
+				Email:     "janedoe@email.com",
+				Document:  "09876543211",
+				Balance:   500,
+			})
+
+			transactionDTO := dtos.TransactionDTO{
+				Value: 100,
+				Payer: user1,
+				Payee: user2,
+			}
+
+			_, err := sut.NewTransaction(ctx, transactionDTO)
+			if err != transfer.ErrInsufficientFunds {
+				t.Errorf("expected error to be ErrInsufficientFunds, got %v", err)
+			}
+
+			t.Logf("error: %+v", err)
+		},
+	)
+
+	t.Run("should not be able to make a transfer between users with merchant role", func(t *testing.T) {
+		userRepository.Users = []models.User{}
+
+		user1, _ := userRepository.Create(ctx, models.User{
+			FirstName: "John",
+			LastName:  "Doe",
+			Email:     "johndoe@email.com",
+			Document:  "12345678900",
+			Balance:   1000,
+			Role:      models.RoleMerchant,
+		})
+		user2, _ := userRepository.Create(ctx, models.User{
+			FirstName: "Jane",
+			LastName:  "Doe",
+			Email:     "janedoe@email.com",
+			Document:  "09876543211",
+			Balance:   500,
+		})
+
+		transactionDTO := dtos.TransactionDTO{
+			Value: 100,
+			Payer: user1,
+			Payee: user2,
+		}
+
+		_, err := sut.NewTransaction(ctx, transactionDTO)
+		if err != transfer.ErrMerchantNotAllowed {
+			t.Errorf("expected error to be ErrMerchantNotAllowed, got %v", err)
+		}
+
+		t.Logf("error: %+v", err)
 	})
 }

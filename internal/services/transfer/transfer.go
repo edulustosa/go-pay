@@ -109,10 +109,9 @@ func (s *TransferService) updateAndSaveBalance(
 	user *models.User,
 	amount *money.Money,
 ) error {
-	var err error
 	balance := money.NewFromFloat(user.Balance, money.BRL)
 
-	balance, err = balance.Add(amount)
+	balance, err := balance.Add(amount)
 	if err != nil {
 		return err
 	}
@@ -132,6 +131,8 @@ func authorizeTransaction() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		return ErrTransactionNotAuthorized
 	}
