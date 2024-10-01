@@ -100,6 +100,17 @@ func TestTransferService(t *testing.T) {
 			}
 
 			t.Logf("error: %+v", err)
+
+			user1Model, _ := userRepository.FindByID(ctx, user1)
+			user2Model, _ := userRepository.FindByID(ctx, user2)
+
+			if user1Model.Balance != 90 {
+				t.Errorf("expected user1 balance to be 90, got %v", user1Model.Balance)
+			}
+
+			if user2Model.Balance != 500 {
+				t.Errorf("expected user2 balance to be 500, got %v", user2Model.Balance)
+			}
 		},
 	)
 
@@ -134,5 +145,16 @@ func TestTransferService(t *testing.T) {
 		}
 
 		t.Logf("error: %+v", err)
+
+		user1Model, _ := userRepository.FindByID(ctx, user1)
+		user2Model, _ := userRepository.FindByID(ctx, user2)
+
+		if user1Model.Balance != 1000 {
+			t.Errorf("expected user1 balance to be 90, got %v", user1Model.Balance)
+		}
+
+		if user2Model.Balance != 500 {
+			t.Errorf("expected user2 balance to be 500, got %v", user2Model.Balance)
+		}
 	})
 }
