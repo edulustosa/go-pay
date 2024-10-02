@@ -6,20 +6,22 @@ import (
 
 	"github.com/edulustosa/go-pay/internal/database/models"
 	"github.com/edulustosa/go-pay/internal/database/repo"
+	"github.com/edulustosa/go-pay/internal/dtos"
 	"github.com/edulustosa/go-pay/internal/services/user"
 )
 
 func TestUserService_Create(t *testing.T) {
 	userRepository := repo.InMemoryUserRepository{}
-	sut := user.NewUserService(&userRepository)
+	sut := user.NewService(&userRepository)
 
 	ctx := context.Background()
 	t.Run("should be able to create a new user", func(t *testing.T) {
-		user := models.User{
+		user := dtos.UserDTO{
 			FirstName: "John",
 			LastName:  "Doe",
 			Email:     "johndoe@email.com",
 			Document:  "12345678900",
+			Password:  "123456",
 		}
 
 		userID, err := sut.Create(ctx, user)
@@ -42,11 +44,12 @@ func TestUserService_Create(t *testing.T) {
 	t.Run("should not be able to create a user with the same document", func(t *testing.T) {
 		userRepository.Users = []models.User{}
 
-		user1 := models.User{
+		user1 := dtos.UserDTO{
 			FirstName: "John",
 			LastName:  "Doe",
 			Email:     "johndoe@email.com",
 			Document:  "12345678900",
+			Password:  "123456",
 		}
 
 		_, err := sut.Create(ctx, user1)
@@ -54,11 +57,12 @@ func TestUserService_Create(t *testing.T) {
 			t.Errorf("expected no error, got %v", err)
 		}
 
-		user2 := models.User{
+		user2 := dtos.UserDTO{
 			FirstName: "Jane",
 			LastName:  "Doe",
 			Email:     "janedoe@email.com",
 			Document:  "12345678900",
+			Password:  "123456",
 		}
 
 		_, err = sut.Create(ctx, user2)
@@ -72,11 +76,12 @@ func TestUserService_Create(t *testing.T) {
 	t.Run("should not be able to create a user with the same email", func(t *testing.T) {
 		userRepository.Users = []models.User{}
 
-		user1 := models.User{
+		user1 := dtos.UserDTO{
 			FirstName: "John",
 			LastName:  "Doe",
 			Email:     "johndoe@email.com",
 			Document:  "12345678900",
+			Password:  "123456",
 		}
 
 		_, err := sut.Create(ctx, user1)
@@ -84,11 +89,12 @@ func TestUserService_Create(t *testing.T) {
 			t.Errorf("expected no error, got %v", err)
 		}
 
-		user2 := models.User{
+		user2 := dtos.UserDTO{
 			FirstName: "Jane",
 			LastName:  "Doe",
 			Email:     "johndoe@email.com",
 			Document:  "12345678901",
+			Password:  "123456",
 		}
 
 		_, err = sut.Create(ctx, user2)

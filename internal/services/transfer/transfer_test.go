@@ -15,7 +15,7 @@ import (
 func TestTransferService(t *testing.T) {
 	transactionsRepository := &repo.InMemoryTransactionsRepository{}
 	userRepository := &repo.InMemoryUserRepository{}
-	userService := user.NewUserService(userRepository)
+	userService := user.NewService(userRepository)
 	sut := transfer.NewTransferService(transactionsRepository, userService)
 
 	ctx := context.Background()
