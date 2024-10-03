@@ -97,7 +97,7 @@ func HandleCreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 			if errors.Is(err, user.ErrUserAlreadyExists) {
 				handleError(w, http.StatusConflict, Error{
 					Message: err.Error(),
-					Details: "a user with the same email or document already exists",
+					Details: "an user with the same email or document already exists",
 				})
 				return
 			}
@@ -121,12 +121,18 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		transactionID, err := transferService.NewTransaction(r.Context(), req)
+		_, err = transferService.NewTransaction(r.Context(), req)
 		if err != nil {
+			if errors.Is(err, transfer.ErrUserNotFound) {
+				handleError(w, http.StatusNotFound, Error{
+					Message: err.Error(),
+				})
+				return
+			}
+
 			if errors.Is(err, transfer.ErrMerchantNotAllowed) {
 				handleError(w, http.StatusForbidden, Error{
 					Message: err.Error(),
-					Details: "merchants are not allowed to make transactions",
 				})
 				return
 			}
@@ -142,7 +148,6 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 			if errors.Is(err, transfer.ErrTransactionNotAuthorized) {
 				handleError(w, http.StatusUnauthorized, Error{
 					Message: err.Error(),
-					Details: "transaction not authorized",
 				})
 				return
 			}
@@ -152,6 +157,6 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		encode(w, http.StatusCreated, JSON{"id": transactionID})
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/Rhymond/go-money"
 	"github.com/edulustosa/go-pay/internal/database/models"
 	"github.com/edulustosa/go-pay/internal/dtos"
+	"github.com/edulustosa/go-pay/internal/services/notification"
 	"github.com/google/uuid"
 )
 
@@ -86,12 +88,13 @@ func (s *Service) NewTransaction(
 		return uuid.Nil, ErrTransactionNotAuthorized
 	}
 
-	err = s.updateAndSaveBalance(ctx, &payer, amount.Negative())
+	// The amount is negative because it is being subtracted from the payer
+	err = s.updateBalance(ctx, &payer, amount.Negative())
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	err = s.updateAndSaveBalance(ctx, &payee, amount)
+	err = s.updateBalance(ctx, &payee, amount)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -102,10 +105,25 @@ func (s *Service) NewTransaction(
 		Payee:  payee.ID,
 	}
 
-	return s.repo.Create(ctx, transaction)
+	id, err := s.repo.Create(ctx, transaction)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	err = notification.Send(&payer, "Transaction completed successfully")
+	if err != nil {
+		slog.Error("failed to send notification", "error", err)
+	}
+	err = notification.Send(&payee, "Transaction received successfully")
+	if err != nil {
+		slog.Error("failed to send notification", "error", err)
+	}
+
+	return id, nil
 }
 
-func (s *Service) updateAndSaveBalance(
+// Updates the user balance by the given amount
+func (s *Service) updateBalance(
 	ctx context.Context,
 	user *models.User,
 	amount *money.Money,

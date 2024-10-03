@@ -14,7 +14,7 @@ func validLength(field string, min, max int) bool {
 }
 
 type TransactionDTO struct {
-	Value float64   `json:"amount"`
+	Value float64   `json:"value"`
 	Payer uuid.UUID `json:"payer"`
 	Payee uuid.UUID `json:"payee"`
 }

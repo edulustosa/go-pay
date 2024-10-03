@@ -28,6 +28,8 @@ func scanUser(row pgx.Row) (models.User, error) {
 		&user.Document,
 		&user.Email,
 		&user.PasswordHash,
+		&user.Balance,
+		&user.Role,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -62,8 +64,9 @@ const createUser = `
 		"document",
 		"email",
 		"password_hash",
+		"balance",
 		"role"
-	) VALUES ($1, $2, $3, $4, $5, $6)
+	) VALUES ($1, $2, $3, $4, $5, $6, $7)
 	RETURNING "id";
 `
 
@@ -81,6 +84,7 @@ func (r *UserRepository) Create(
 		user.Document,
 		user.Email,
 		user.PasswordHash,
+		user.Balance,
 		user.Role,
 	).Scan(&id)
 

@@ -2,4 +2,5 @@ root = "."
 tmp_dir = "bin"
 
 [build]
-cmd = "go run ./cmd/go-pay"
+cmd = "go build -o ./bin/go-pay ./cmd/go-pay"
+bin = "bin/go-pay"

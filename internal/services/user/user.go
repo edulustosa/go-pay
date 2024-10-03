@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/edulustosa/go-pay/internal/database/models"
 	"github.com/edulustosa/go-pay/internal/dtos"
@@ -43,20 +44,15 @@ func (s *Service) Create(
 	ctx context.Context,
 	userDTO dtos.UserDTO,
 ) (uuid.UUID, error) {
-	errChan := make(chan error, 2)
+	userDTO.Document = normalizeDocument(userDTO.Document)
 
-	go func() {
-		_, err := s.repo.FindByDocument(ctx, userDTO.Document)
-		errChan <- err
-	}()
+	_, err := s.repo.FindByDocument(ctx, userDTO.Document)
+	if err == nil {
+		return uuid.Nil, ErrUserAlreadyExists
+	}
 
-	go func() {
-		_, err := s.repo.FindByEmail(ctx, userDTO.Email)
-		errChan <- err
-	}()
-
-	errEmail, errDocument := <-errChan, <-errChan
-	if errEmail == nil || errDocument == nil {
+	_, err = s.repo.FindByEmail(ctx, userDTO.Email)
+	if err == nil {
 		return uuid.Nil, ErrUserAlreadyExists
 	}
 
@@ -83,6 +79,12 @@ func (s *Service) Create(
 	}
 
 	return s.repo.Create(ctx, user)
+}
+
+func normalizeDocument(document string) string {
+	document = strings.ReplaceAll(document, ".", "")
+	document = strings.ReplaceAll(document, "-", "")
+	return document
 }
 
 func (s *Service) UpdateBalance(
