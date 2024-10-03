@@ -12,28 +12,28 @@ import (
 	"github.com/google/uuid"
 )
 
-type TransactionsRepository interface {
+type transactionsRepository interface {
 	Create(
 		ctx context.Context,
 		transaction models.Transaction,
 	) (uuid.UUID, error)
 }
 
-type UserService interface {
+type userService interface {
 	FindByID(ctx context.Context, id uuid.UUID) (models.User, error)
 	UpdateBalance(ctx context.Context, id uuid.UUID, balance float64) error
 }
 
-type TransferService struct {
-	repo TransactionsRepository
-	user UserService
+type Service struct {
+	repo transactionsRepository
+	user userService
 }
 
-func NewTransferService(
-	repo TransactionsRepository,
-	user UserService,
-) *TransferService {
-	return &TransferService{
+func NewService(
+	repo transactionsRepository,
+	user userService,
+) *Service {
+	return &Service{
 		repo,
 		user,
 	}
@@ -43,6 +43,7 @@ var (
 	ErrMerchantNotAllowed       = errors.New("merchant not allowed to make transactions")
 	ErrInsufficientFunds        = errors.New("insufficient funds")
 	ErrTransactionNotAuthorized = errors.New("transaction not authorized")
+	ErrUserNotFound             = errors.New("user not found")
 )
 
 func validateTransaction(payer *models.User, amount *money.Money) error {
@@ -62,18 +63,18 @@ func validateTransaction(payer *models.User, amount *money.Money) error {
 	return nil
 }
 
-func (s *TransferService) NewTransaction(
+func (s *Service) NewTransaction(
 	ctx context.Context,
 	transactionDTO dtos.TransactionDTO,
 ) (uuid.UUID, error) {
 	payer, err := s.user.FindByID(ctx, transactionDTO.Payer)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, ErrUserNotFound
 	}
 
 	payee, err := s.user.FindByID(ctx, transactionDTO.Payee)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, ErrUserNotFound
 	}
 
 	amount := money.NewFromFloat(transactionDTO.Value, money.BRL)
@@ -82,7 +83,7 @@ func (s *TransferService) NewTransaction(
 	}
 
 	if err = authorizeTransaction(); err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, ErrTransactionNotAuthorized
 	}
 
 	err = s.updateAndSaveBalance(ctx, &payer, amount.Negative())
@@ -104,7 +105,7 @@ func (s *TransferService) NewTransaction(
 	return s.repo.Create(ctx, transaction)
 }
 
-func (s *TransferService) updateAndSaveBalance(
+func (s *Service) updateAndSaveBalance(
 	ctx context.Context,
 	user *models.User,
 	amount *money.Money,

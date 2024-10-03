@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserRepository interface {
+type userRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (models.User, error)
 	FindByDocument(ctx context.Context, document string) (models.User, error)
 	FindByEmail(ctx context.Context, email string) (models.User, error)
@@ -18,12 +18,12 @@ type UserRepository interface {
 	UpdateBalance(ctx context.Context, id uuid.UUID, balance float64) error
 }
 
-type UserService struct {
-	repo UserRepository
+type Service struct {
+	repo userRepository
 }
 
-func NewService(repo UserRepository) *UserService {
-	return &UserService{
+func NewService(repo userRepository) *Service {
+	return &Service{
 		repo,
 	}
 }
@@ -32,14 +32,14 @@ var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
-func (s *UserService) FindByID(
+func (s *Service) FindByID(
 	ctx context.Context,
 	id uuid.UUID,
 ) (models.User, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *UserService) Create(
+func (s *Service) Create(
 	ctx context.Context,
 	userDTO dtos.UserDTO,
 ) (uuid.UUID, error) {
@@ -85,7 +85,7 @@ func (s *UserService) Create(
 	return s.repo.Create(ctx, user)
 }
 
-func (s *UserService) UpdateBalance(
+func (s *Service) UpdateBalance(
 	ctx context.Context,
 	id uuid.UUID,
 	balance float64,

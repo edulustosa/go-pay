@@ -16,7 +16,7 @@ func TestTransferService(t *testing.T) {
 	transactionsRepository := &repo.InMemoryTransactionsRepository{}
 	userRepository := &repo.InMemoryUserRepository{}
 	userService := user.NewService(userRepository)
-	sut := transfer.NewTransferService(transactionsRepository, userService)
+	sut := transfer.NewService(transactionsRepository, userService)
 
 	ctx := context.Background()
 	t.Run("should be able to make a transfer between users", func(t *testing.T) {

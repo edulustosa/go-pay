@@ -19,6 +19,24 @@ type TransactionDTO struct {
 	Payee uuid.UUID `json:"payee"`
 }
 
+func (t TransactionDTO) Valid() (problems map[string]string) {
+	problems = make(map[string]string)
+
+	if t.Value <= 0 {
+		problems["amount"] = "must be greater than 0"
+	}
+
+	if t.Payer == uuid.Nil {
+		problems["payer"] = "must be a valid UUID"
+	}
+
+	if t.Payee == uuid.Nil {
+		problems["payee"] = "must be a valid UUID"
+	}
+
+	return problems
+}
+
 type NotificationDTO struct {
 	Email   string `json:"email"`
 	Message string `json:"message"`

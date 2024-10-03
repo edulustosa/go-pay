@@ -10,7 +10,7 @@ import (
 	"github.com/edulustosa/go-pay/internal/dtos"
 )
 
-const NOTIFICATION_URL = "https://util.devi.tools/api/v1/notify"
+const notificationURL = "https://util.devi.tools/api/v1/notify"
 
 var ErrNotificationUnavailable = errors.New("notification service unavailable")
 
@@ -27,7 +27,7 @@ func Send(user *models.User, message string) error {
 
 	req, err := http.NewRequest(
 		http.MethodPost,
-		NOTIFICATION_URL,
+		notificationURL,
 		bytes.NewReader(reqBytes),
 	)
 	if err != nil {

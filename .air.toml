@@ -1,0 +1,5 @@
+root = "."
+tmp_dir = "bin"
+
+[build]
+cmd = "go run ./cmd/go-pay"

@@ -9,6 +9,8 @@ import (
 
 	"github.com/edulustosa/go-pay/internal/database/repo"
 	"github.com/edulustosa/go-pay/internal/dtos"
+	"github.com/edulustosa/go-pay/internal/factories"
+	"github.com/edulustosa/go-pay/internal/services/transfer"
 	"github.com/edulustosa/go-pay/internal/services/user"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -86,15 +88,11 @@ func HandleCreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, problems, err := decodeValid[dtos.UserDTO](r)
 		if err != nil {
-			if len(problems) > 0 {
-				handleInvalidRequest(w, problems)
-				return
-			}
-			handleError(w, http.StatusBadRequest, Error{Message: "invalid json"})
+			handleInvalidRequest(w, problems)
 			return
 		}
 
-		userId, err := userService.Create(r.Context(), req)
+		userID, err := userService.Create(r.Context(), req)
 		if err != nil {
 			if errors.Is(err, user.ErrUserAlreadyExists) {
 				handleError(w, http.StatusConflict, Error{
@@ -109,6 +107,51 @@ func HandleCreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		encode(w, http.StatusCreated, JSON{"id": userId})
+		encode(w, http.StatusCreated, JSON{"id": userID})
+	}
+}
+
+func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
+	transferService := factories.MakeTransferService(pool)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, problems, err := decodeValid[dtos.TransactionDTO](r)
+		if err != nil {
+			handleInvalidRequest(w, problems)
+			return
+		}
+
+		transactionID, err := transferService.NewTransaction(r.Context(), req)
+		if err != nil {
+			if errors.Is(err, transfer.ErrMerchantNotAllowed) {
+				handleError(w, http.StatusForbidden, Error{
+					Message: err.Error(),
+					Details: "merchants are not allowed to make transactions",
+				})
+				return
+			}
+
+			if errors.Is(err, transfer.ErrInsufficientFunds) {
+				handleError(w, http.StatusUnprocessableEntity, Error{
+					Message: err.Error(),
+					Details: "payer has insufficient funds",
+				})
+				return
+			}
+
+			if errors.Is(err, transfer.ErrTransactionNotAuthorized) {
+				handleError(w, http.StatusUnauthorized, Error{
+					Message: err.Error(),
+					Details: "transaction not authorized",
+				})
+				return
+			}
+
+			slog.Error("failed to make transfer", "error", err, "transfer", req)
+			handleError(w, http.StatusInternalServerError, InternalServerErr)
+			return
+		}
+
+		encode(w, http.StatusCreated, JSON{"id": transactionID})
 	}
 }
