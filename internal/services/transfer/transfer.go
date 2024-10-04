@@ -110,14 +110,16 @@ func (s *Service) NewTransaction(
 		return uuid.Nil, err
 	}
 
-	err = notification.Send(&payer, "Transaction completed successfully")
-	if err != nil {
-		slog.Error("failed to send notification", "error", err)
-	}
-	err = notification.Send(&payee, "Transaction received successfully")
-	if err != nil {
-		slog.Error("failed to send notification", "error", err)
-	}
+	go func() {
+		err := notification.Send(&payer, "Transaction completed successfully")
+		if err != nil {
+			slog.Error("failed to send notification", "error", err)
+		}
+		err = notification.Send(&payee, "Transaction received successfully")
+		if err != nil {
+			slog.Error("failed to send notification", "error", err)
+		}
+	}()
 
 	return id, nil
 }

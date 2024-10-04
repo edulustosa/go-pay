@@ -136,7 +136,7 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 				})
 				return
 			}
-
+			
 			if errors.Is(err, transfer.ErrInsufficientFunds) {
 				handleError(w, http.StatusUnprocessableEntity, Error{
 					Message: err.Error(),
