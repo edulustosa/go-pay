@@ -18,11 +18,12 @@ import (
 
 type JSON map[string]any
 
+// Validator is an interface that defines a method to validate a struct/request.
 type Validator interface {
 	Valid() (problems map[string]string)
 }
 
-func decodeValid[T Validator](r *http.Request) (T, map[string]string, error) {
+func decode[T Validator](r *http.Request) (T, map[string]string, error) {
 	var v T
 
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
@@ -53,12 +54,14 @@ type Error struct {
 	Details string `json:"details"`
 }
 
-var InternalServerErr = Error{Message: "something went wrong, please try again later"}
+var InternalServerErrMsg = Error{Message: "something went wrong, please try again later"}
 
 func handleError(w http.ResponseWriter, status int, errors ...Error) {
 	encode(w, status, ErrorList{errors})
 }
 
+// Append to the errors array the problems found in the request
+// or a single error if was not possible to parse the json request.
 func handleInvalidRequest(w http.ResponseWriter, problems map[string]string) {
 	var errors []Error
 
@@ -87,7 +90,7 @@ func HandleCreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 	userService := user.NewService(usersRepository)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, problems, err := decodeValid[dtos.UserDTO](r)
+		req, problems, err := decode[dtos.UserDTO](r)
 		if err != nil {
 			handleInvalidRequest(w, problems)
 			return
@@ -104,7 +107,7 @@ func HandleCreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 			}
 
 			slog.Error("failed to create user", "error", err, "user", req)
-			handleError(w, http.StatusInternalServerError, InternalServerErr)
+			handleError(w, http.StatusInternalServerError, InternalServerErrMsg)
 			return
 		}
 
@@ -125,7 +128,7 @@ func HandleGetUsers(pool *pgxpool.Pool) http.HandlerFunc {
 		users, err := userService.FindMany(r.Context(), page)
 		if err != nil {
 			slog.Error("failed to get users", "error", err)
-			handleError(w, http.StatusInternalServerError, InternalServerErr)
+			handleError(w, http.StatusInternalServerError, InternalServerErrMsg)
 			return
 		}
 
@@ -137,7 +140,7 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 	transferService := factories.MakeTransferService(pool)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, problems, err := decodeValid[dtos.TransactionDTO](r)
+		req, problems, err := decode[dtos.TransactionDTO](r)
 		if err != nil {
 			handleInvalidRequest(w, problems)
 			return
@@ -175,7 +178,7 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 			}
 
 			slog.Error("failed to make transfer", "error", err, "transfer", req)
-			handleError(w, http.StatusInternalServerError, InternalServerErr)
+			handleError(w, http.StatusInternalServerError, InternalServerErrMsg)
 			return
 		}
 

@@ -42,7 +42,7 @@ func NewService(
 }
 
 var (
-	ErrMerchantNotAllowed       = errors.New("merchant not allowed to make transactions")
+	ErrMerchantNotAllowed       = errors.New("merchants are not allowed to make transactions")
 	ErrInsufficientFunds        = errors.New("insufficient funds")
 	ErrTransactionNotAuthorized = errors.New("transaction not authorized")
 	ErrUserNotFound             = errors.New("user not found")
@@ -110,6 +110,7 @@ func (s *Service) NewTransaction(
 		return uuid.Nil, err
 	}
 
+	// Send notifications in parallel
 	go func() {
 		err := notification.Send(&payer, "Transaction completed successfully")
 		if err != nil {
@@ -144,9 +145,10 @@ type Authorizer struct {
 	Status string `json:"status"`
 	Data   struct {
 		Authorization bool `json:"authorization"`
-	}
+	} `json:"data"`
 }
 
+// Service to authorize a transaction
 func authorizeTransaction() error {
 	resp, err := http.Get("https://util.devi.tools/api/v2/authorize")
 	if err != nil {

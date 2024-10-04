@@ -23,6 +23,7 @@ func calculateDigit(document string, factor int) (int, error) {
 	return rest, nil
 }
 
+// Verify if a document is valid CPF
 func ParseDocument(document string) error {
 	document = strings.ReplaceAll(document, ".", "")
 	document = strings.ReplaceAll(document, "-", "")

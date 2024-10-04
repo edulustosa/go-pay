@@ -13,7 +13,6 @@ import (
 
 	"github.com/edulustosa/go-pay/internal/api/router"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -39,10 +38,6 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	if err := godotenv.Load(); err != nil {
-		return err
-	}
-
 	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		return err

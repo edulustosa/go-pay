@@ -30,9 +30,7 @@ func NewService(repo userRepository) *Service {
 	}
 }
 
-var (
-	ErrUserAlreadyExists = errors.New("user already exists")
-)
+var ErrUserAlreadyExists = errors.New("user already exists")
 
 func (s *Service) FindByID(
 	ctx context.Context,
@@ -65,6 +63,7 @@ func (s *Service) Create(
 		return uuid.Nil, err
 	}
 
+	// Default role is common user
 	if userDTO.Role == "" {
 		userDTO.Role = models.RoleCommon
 	}
