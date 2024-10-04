@@ -1,6 +1,5 @@
--- Active: 1727625324173@@127.0.0.1@5432@gopaydb
-CREATE TYPE "Role" AS ENUM('COMMON', 'MERCHANT');
-
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS users (
     "id" UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
     "first_name" VARCHAR(255) NOT NULL,
@@ -13,5 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
     "created_at" TIMESTAMP NOT NULL DEFAULT NOW(),
     "updated_at" TIMESTAMP NOT NULL DEFAULT NOW()
 );
----- create above / drop below ----
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
 DROP TABLE IF EXISTS users;
+-- +goose StatementEnd

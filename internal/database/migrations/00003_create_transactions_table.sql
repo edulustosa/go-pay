@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS transactions (
     "id" UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
     "amount" DECIMAL NOT NULL,
@@ -8,5 +10,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (payer) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (payee) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE
 );
----- create above / drop below ----
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
 DROP TABLE IF EXISTS transactions;
+-- +goose StatementEnd

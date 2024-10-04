@@ -13,6 +13,8 @@ import (
 
 	"github.com/edulustosa/go-pay/internal/api/router"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -48,6 +50,10 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	if err := runMigrations(ctx, pool); err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
 	r := router.NewServer(pool)
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", os.Getenv("PORT")),
@@ -80,6 +86,26 @@ func run(ctx context.Context) error {
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func runMigrations(ctx context.Context, pool *pgxpool.Pool) error {
+	db := stdlib.OpenDBFromPool(pool)
+	defer db.Close()
+
+	provider, err := goose.NewProvider(
+		goose.DialectPostgres,
+		db,
+		os.DirFS("./internal/database/migrations"),
+	)
+	if err != nil {
+		return err
+	}
+
+	if _, err := provider.Up(ctx); err != nil {
+		return err
 	}
 
 	return nil
