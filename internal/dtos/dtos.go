@@ -82,3 +82,13 @@ func (u UserDTO) Valid() (problems map[string]string) {
 
 	return problems
 }
+
+type UserResponseDTO struct {
+	ID        uuid.UUID   `json:"id"`
+	FirstName string      `json:"firstName"`
+	LastName  string      `json:"lastName"`
+	Document  string      `json:"document"`
+	Email     string      `json:"email"`
+	Balance   float64     `json:"balance"`
+	Role      models.Role `json:"role"`
+}

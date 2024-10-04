@@ -83,6 +83,23 @@ func (r *InMemoryUserRepository) Create(
 	return user.ID, nil
 }
 
+func (r *InMemoryUserRepository) FindMany(
+	_ context.Context,
+	page int,
+) ([]models.User, error) {
+	start := (page - 1) * 20
+	if start >= len(r.Users) {
+		return []models.User{}, nil
+	}
+
+	end := page * 20
+	if end > len(r.Users) {
+		end = len(r.Users)
+	}
+
+	return r.Users[start:end], nil
+}
+
 func (r *InMemoryUserRepository) UpdateBalance(
 	_ context.Context,
 	id uuid.UUID,

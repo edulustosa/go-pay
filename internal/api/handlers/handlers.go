@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/edulustosa/go-pay/internal/database/repo"
 	"github.com/edulustosa/go-pay/internal/dtos"
@@ -111,6 +112,27 @@ func HandleCreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 	}
 }
 
+func HandleGetUsers(pool *pgxpool.Pool) http.HandlerFunc {
+	usersRepository := repo.NewUserRepository(pool)
+	userService := user.NewService(usersRepository)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+		if page == 0 {
+			page = 1
+		}
+
+		users, err := userService.FindMany(r.Context(), page)
+		if err != nil {
+			slog.Error("failed to get users", "error", err)
+			handleError(w, http.StatusInternalServerError, InternalServerErr)
+			return
+		}
+
+		encode(w, http.StatusOK, JSON{"users": users})
+	}
+}
+
 func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 	transferService := factories.MakeTransferService(pool)
 
@@ -136,7 +158,7 @@ func HandleTransfer(pool *pgxpool.Pool) http.HandlerFunc {
 				})
 				return
 			}
-			
+
 			if errors.Is(err, transfer.ErrInsufficientFunds) {
 				handleError(w, http.StatusUnprocessableEntity, Error{
 					Message: err.Error(),

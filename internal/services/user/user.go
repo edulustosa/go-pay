@@ -17,6 +17,7 @@ type userRepository interface {
 	FindByEmail(ctx context.Context, email string) (models.User, error)
 	Create(ctx context.Context, user models.User) (uuid.UUID, error)
 	UpdateBalance(ctx context.Context, id uuid.UUID, balance float64) error
+	FindMany(ctx context.Context, page int) ([]models.User, error)
 }
 
 type Service struct {
@@ -93,4 +94,33 @@ func (s *Service) UpdateBalance(
 	balance float64,
 ) error {
 	return s.repo.UpdateBalance(ctx, id, balance)
+}
+
+func (s *Service) FindMany(
+	ctx context.Context,
+	page int,
+) ([]dtos.UserResponseDTO, error) {
+	if page < 1 {
+		page = 1
+	}
+
+	users, err := s.repo.FindMany(ctx, page)
+	if err != nil {
+		return nil, err
+	}
+
+	usersDTO := make([]dtos.UserResponseDTO, len(users))
+	for i, user := range users {
+		usersDTO[i] = dtos.UserResponseDTO{
+			ID:        user.ID,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			Document:  user.Document,
+			Email:     user.Email,
+			Balance:   user.Balance,
+			Role:      user.Role,
+		}
+	}
+
+	return usersDTO, nil
 }

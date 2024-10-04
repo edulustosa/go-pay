@@ -10,6 +10,7 @@ import (
 func NewServer(pool *pgxpool.Pool) http.Handler {
 	r := http.NewServeMux()
 
+	r.HandleFunc("GET /users", handlers.HandleGetUsers(pool))
 	r.HandleFunc("POST /users", handlers.HandleCreateUser(pool))
 	r.HandleFunc("POST /transfer", handlers.HandleTransfer(pool))
 

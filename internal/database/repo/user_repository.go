@@ -91,6 +91,33 @@ func (r *UserRepository) Create(
 	return id, err
 }
 
+const findMany = "SELECT * FROM users LIMIT $1 OFFSET $2;"
+
+const itemsPerPage = 20
+
+func (r *UserRepository) FindMany(
+	ctx context.Context,
+	page int,
+) ([]models.User, error) {
+	rows, err := r.db.Query(ctx, findMany, itemsPerPage, (page-1)*itemsPerPage)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]models.User, 0, itemsPerPage)
+	for rows.Next() {
+		user, err := scanUser(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 const findByEmail = "SELECT * FROM users WHERE email = $1"
 
 func (r *UserRepository) FindByEmail(
