@@ -8,6 +8,6 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o go-pay ./cmd/go-pay
+RUN go build -o ./bin/go-pay ./cmd/go-pay
 
-CMD ["./go-pay"]
+CMD ["./bin/go-pay"]
