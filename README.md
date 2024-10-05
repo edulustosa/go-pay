@@ -12,7 +12,13 @@ Acesse <https://go-pay.apidocumentation.com/reference> para ter acesso à docume
 
 Você pode testar localmente facilmente usando o [Docker](https://docs.docker.com/engine/install/).
 
-- Primeiro, renomeie o arquivo `.env.example` para `.env` e ajuste conforme necessário.
+- Primeiro clone o repositório:
+
+``` bash
+git clone https://github.com/edulustosa/go-pay.git
+```
+
+- Dentro do projeto renomeie o arquivo `.env.example` para `.env` e ajuste conforme necessário.
 
 - Suba os containers usando o Docker Compose:
 
