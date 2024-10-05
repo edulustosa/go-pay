@@ -40,7 +40,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
+	pool, err := pgxpool.New(ctx, os.Getenv("POSTGRES_URL"))
 	if err != nil {
 		return err
 	}
