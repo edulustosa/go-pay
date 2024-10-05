@@ -1,6 +1,6 @@
 module github.com/edulustosa/go-pay
 
-go 1.23.1
+go 1.23.0
 
 require (
 	github.com/Rhymond/go-money v1.0.14
